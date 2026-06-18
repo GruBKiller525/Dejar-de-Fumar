@@ -2,13 +2,14 @@
 
 const heroesPool = [
   {
-    id: 'goku', name: 'Goku', emoji: '🌀', role: 'captain',
+    id: 'goku_gt', name: 'Goku (GT)', emoji: '🌀', role: 'captain',
+    icon: 'Goku_GT',
     forms: [
-      { name: 'Base',            attack: 'Kamehameha',         power: 200   },
-      { name: 'Kaioken',         attack: 'Kaioken Kamehameha', power: 800   },
-      { name: 'Super Saiyan',    attack: 'SSJ Kamehameha',     power: 3200  },
-      { name: 'SSJ3',            attack: 'Genkidama',          power: 12800 },
-      { name: 'Super Saiyan God',attack: 'Kamehameha Divino',  power: 40000 },
+      { name: 'Trusted by Friends',            attack: 'Kamehameha',          power: 200,   image: '5.Goku_GT,Trusted_by_Friends' },
+      { name: 'Battle to Become the Strongest', attack: 'Kamehameha (Extreme)', power: 800,  image: '4.Super_Saiyan_Goku_GT,Battle_to_Become_the_Strongest' },
+      { name: 'Ultimate Saiyan Power Roar',    attack: 'Super Dragon Fist',   power: 3200,  image: '3.Super_Saiyan_3_Goku_GT_Golden_Giant_Ape,Ultimate_Saiyan_Power_Roar' },
+      { name: 'Ultimate Saiyan Power Roar',    attack: 'Super Flame Cannon',  power: 12800, image: '2.Super_Saiyan_3_Goku_GT_Golden_Giant_Ape,Ultimate_Saiyan_Power_Roar' },
+      { name: 'Ultimate Saiyan Power Roar',    attack: 'Dragon Strike Waltz', power: 40000, image: 'Super_Saiyan_4_Goku,Ultimate Saiyan_Power_Roar' },
     ]
   },
   {
