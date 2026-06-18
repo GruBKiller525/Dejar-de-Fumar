@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dragon Ball: Deja de Fumar</title>
+  <style>
+    :root {
+      --bg: #0d0d0d;
+      --card: #1a1a1a;
+      --card2: #252525;
+      --accent: #f5a623;
+      --gold: #ffd700;
+      --text: #f0f0f0;
+      --muted: #888;
+      --green: #4caf50;
+      --red: #e53935;
+      --blue: #42a5f5;
+      --border: #333;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      max-width: 480px;
+      margin: 0 auto;
+      padding-bottom: 72px;
+    }
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* ── NAV ── */
+    #bottom-nav {
+      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 480px;
+      background: #111; border-top: 1px solid var(--border);
+      display: flex; z-index: 100;
+    }
+    #bottom-nav button {
+      flex: 1; padding: 14px 0; background: none; border: none;
+      color: var(--muted); font-size: 12px; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+    }
+    #bottom-nav button.active { color: var(--accent); }
+    #bottom-nav button span:first-child { font-size: 20px; }
+
+    /* ── SETUP ── */
+    #screen-setup {
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; padding: 32px 24px; gap: 20px;
+    }
+    #screen-setup h1 { font-size: 28px; color: var(--accent); text-align: center; }
+    #screen-setup p { color: var(--muted); text-align: center; font-size: 14px; }
+    .setup-group { width: 100%; display: flex; flex-direction: column; gap: 6px; }
+    .setup-group label { font-size: 13px; color: var(--muted); }
+    .setup-group input {
+      width: 100%; padding: 12px; background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; color: var(--text); font-size: 15px;
+    }
+    .setup-group input:focus { outline: none; border-color: var(--accent); }
+    .btn-primary {
+      width: 100%; padding: 14px; background: var(--accent); color: #000;
+      border: none; border-radius: 12px; font-size: 16px; font-weight: 700;
+      cursor: pointer; letter-spacing: 0.5px;
+    }
+    .btn-primary:hover { opacity: 0.9; }
+
+    /* ── HEADER ── */
+    .page-header {
+      padding: 16px 20px 0;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .page-header h2 { font-size: 18px; color: var(--accent); }
+    .badge {
+      padding: 4px 10px; border-radius: 20px;
+      background: var(--card2); font-size: 12px; color: var(--muted);
+    }
+
+    /* ── CHARACTER CARD ── */
+    .char-card {
+      margin: 16px; background: var(--card);
+      border: 1px solid var(--border); border-radius: 16px; padding: 20px;
+      display: flex; gap: 16px; align-items: center;
+    }
+    .char-card.today { border-color: var(--accent); }
+    .char-emoji {
+      font-size: 64px; line-height: 1; min-width: 80px; text-align: center;
+    }
+    .char-info { flex: 1; }
+    .char-name { font-size: 20px; font-weight: 700; }
+    .char-form {
+      font-size: 13px; color: var(--accent); margin: 2px 0 6px;
+      font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .char-power { font-size: 22px; font-weight: 700; color: var(--gold); }
+    .char-power span { font-size: 12px; color: var(--muted); font-weight: 400; }
+    .char-role-badge {
+      display: inline-block; margin-top: 6px; padding: 3px 8px;
+      border-radius: 20px; font-size: 11px; font-weight: 600;
+      background: var(--card2); color: var(--muted);
+    }
+    .char-attack { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    /* ── THRESHOLDS ── */
+    .thresholds-box {
+      margin: 0 16px 12px; background: var(--card2);
+      border-radius: 12px; padding: 12px 16px;
+    }
+    .thresholds-box h4 { font-size: 12px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .threshold-row { display: flex; gap: 8px; margin-bottom: 4px; font-size: 13px; }
+    .threshold-row .th-icon { width: 20px; text-align: center; }
+    .th-good { color: var(--green); }
+    .th-mid { color: var(--accent); }
+    .th-bad { color: var(--red); }
+
+    /* ── CIG INPUT ── */
+    .cig-section {
+      margin: 0 16px 16px; background: var(--card);
+      border: 1px solid var(--border); border-radius: 16px; padding: 16px;
+    }
+    .cig-section h3 { font-size: 14px; color: var(--muted); margin-bottom: 12px; }
+    .cig-counter {
+      display: flex; align-items: center; justify-content: center; gap: 24px; margin-bottom: 12px;
+    }
+    .cig-counter button {
+      width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--accent);
+      background: none; color: var(--accent); font-size: 24px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .cig-counter button:hover { background: var(--accent); color: #000; }
+    #cig-count { font-size: 40px; font-weight: 700; min-width: 60px; text-align: center; }
+    .btn-log {
+      width: 100%; padding: 12px; background: var(--accent); color: #000;
+      border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer;
+    }
+    .btn-log:disabled { opacity: 0.4; cursor: default; }
+    .logged-badge {
+      text-align: center; padding: 10px; color: var(--green);
+      font-size: 14px; font-weight: 600;
+    }
+
+    /* ── WEEKLY TEAM ── */
+    .team-section { margin: 0 16px 16px; }
+    .team-section h3 { font-size: 14px; color: var(--muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .team-strip {
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;
+    }
+    .team-slot {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 6px 4px; text-align: center;
+      font-size: 11px; color: var(--muted);
+    }
+    .team-slot.filled { border-color: var(--border); }
+    .team-slot.today-slot { border-color: var(--accent); }
+    .team-slot.battle-slot { border-color: var(--red); }
+    .team-slot .slot-emoji { font-size: 22px; display: block; margin-bottom: 2px; }
+    .team-slot .slot-day { font-size: 10px; }
+    .team-slot .slot-name { font-size: 9px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .team-slot .slot-battle { font-size: 9px; color: var(--red); }
+
+    /* ── BATTLE BUTTON ── */
+    .battle-btn-section { margin: 0 16px 16px; }
+    .btn-battle {
+      width: 100%; padding: 16px; background: linear-gradient(135deg, #b71c1c, #e53935);
+      color: #fff; border: none; border-radius: 12px; font-size: 17px; font-weight: 700;
+      cursor: pointer; letter-spacing: 1px; text-transform: uppercase;
+      box-shadow: 0 4px 16px rgba(229,57,53,0.4);
+    }
+    .btn-battle:hover { opacity: 0.9; }
+    .battle-result-badge {
+      text-align: center; padding: 10px; border-radius: 10px;
+      font-size: 14px; font-weight: 700;
+    }
+    .battle-result-badge.win { background: rgba(76,175,80,0.15); color: var(--green); }
+    .battle-result-badge.lose { background: rgba(229,57,53,0.15); color: var(--red); }
+
+    /* ── BATTLE SCREEN ── */
+    .battle-header {
+      padding: 16px 20px; background: var(--card);
+      border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .battle-header h2 { font-size: 18px; color: var(--red); }
+    .hp-bars { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+    .hp-bar-row { display: flex; flex-direction: column; gap: 4px; }
+    .hp-bar-label {
+      display: flex; justify-content: space-between; font-size: 13px;
+    }
+    .hp-bar-track {
+      height: 10px; background: var(--border); border-radius: 5px; overflow: hidden;
+    }
+    .hp-bar-fill {
+      height: 100%; border-radius: 5px; transition: width 0.4s;
+    }
+    .hp-bar-fill.team { background: var(--green); }
+    .hp-bar-fill.enemy { background: var(--red); }
+    .battle-log {
+      margin: 0 16px 16px; background: var(--card);
+      border: 1px solid var(--border); border-radius: 12px;
+      padding: 12px; max-height: 340px; overflow-y: auto;
+      font-size: 13px; line-height: 1.7;
+    }
+    .log-line { display: block; margin-bottom: 2px; }
+    .log-line.separator { color: var(--muted); border-top: 1px solid var(--border); margin: 6px 0; }
+    .log-line.victory { color: var(--gold); font-weight: 700; font-size: 15px; }
+    .log-line.defeat { color: var(--red); font-weight: 700; font-size: 15px; }
+    .log-line.heal { color: var(--green); }
+    .log-line.enemy-atk { color: var(--red); }
+    .btn-back {
+      margin: 0 16px 16px; width: calc(100% - 32px); padding: 12px;
+      background: var(--card2); color: var(--text); border: 1px solid var(--border);
+      border-radius: 10px; font-size: 14px; cursor: pointer;
+    }
+
+    /* ── HISTORY ── */
+    .history-section { padding: 16px; }
+    .week-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; margin-bottom: 14px; overflow: hidden;
+    }
+    .week-card-header {
+      padding: 12px 16px; background: var(--card2);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .week-card-header h3 { font-size: 15px; color: var(--accent); }
+    .week-stats { padding: 12px 16px; display: flex; gap: 16px; flex-wrap: wrap; }
+    .stat-pill {
+      padding: 4px 10px; border-radius: 20px; font-size: 12px;
+      background: var(--card2); color: var(--muted);
+    }
+    .stat-pill strong { color: var(--text); }
+    .week-days-strip {
+      display: grid; grid-template-columns: repeat(7, 1fr);
+      gap: 4px; padding: 0 12px 12px;
+    }
+    .mini-slot {
+      background: var(--card2); border-radius: 6px;
+      padding: 4px 2px; text-align: center; font-size: 10px; color: var(--muted);
+    }
+    .mini-slot .ms-emoji { font-size: 16px; display: block; }
+    .mini-slot .ms-cig { font-size: 10px; }
+    .mini-slot.ms-battle-w { border-top: 2px solid var(--green); }
+    .mini-slot.ms-battle-l { border-top: 2px solid var(--red); }
+
+    /* ── STATS BAR ── */
+    .stats-bar {
+      display: flex; justify-content: space-around; padding: 12px 16px;
+      background: var(--card2); margin: 0 16px 16px; border-radius: 12px;
+    }
+    .stat-item { text-align: center; }
+    .stat-value { font-size: 22px; font-weight: 700; color: var(--gold); }
+    .stat-label { font-size: 11px; color: var(--muted); }
+
+    /* ── MISC ── */
+    .empty-state { text-align: center; color: var(--muted); padding: 40px; font-size: 14px; }
+    .saga-label { font-size: 11px; color: var(--muted); margin: 0 16px 8px; }
+  </style>
+</head>
+<body>
+
+<!-- SETUP -->
+<div id="screen-setup" class="screen active">
+  <h1>🐉 Dragon Ball<br/>Deja de Fumar</h1>
+  <p>Comienza tu aventura.<br/>Cada día sin fumar desbloquea un guerrero.</p>
+  <div class="setup-group">
+    <label>¿Cuándo dejaste de fumar?</label>
+    <input type="date" id="setup-date"/>
+  </div>
+  <div class="setup-group">
+    <label>Cigarrillos que fumabas al día</label>
+    <input type="number" id="setup-cigs" min="1" max="100" placeholder="Ej: 10"/>
+  </div>
+  <div class="setup-group">
+    <label>Precio del paquete (€)</label>
+    <input type="number" id="setup-price" min="1" step="0.5" placeholder="Ej: 6"/>
+  </div>
+  <button class="btn-primary" onclick="setupApp()">⚡ Comenzar la aventura</button>
+</div>
+
+<!-- HOME -->
+<div id="screen-home" class="screen">
+  <div class="page-header">
+    <h2 id="home-week-label">Semana 1</h2>
+    <div class="badge" id="home-day-label">Día 1/7</div>
+  </div>
+  <div class="saga-label" id="home-saga-label"></div>
+  <div class="stats-bar">
+    <div class="stat-item">
+      <div class="stat-value" id="stat-days">0</div>
+      <div class="stat-label">Días</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value" id="stat-saved">€0</div>
+      <div class="stat-label">Ahorrado</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value" id="stat-streak">0</div>
+      <div class="stat-label">Racha 0 cig</div>
+    </div>
+  </div>
+  <div id="today-card-container"></div>
+  <div id="thresholds-container"></div>
+  <div class="cig-section">
+    <h3>Cigarrillos fumados hoy</h3>
+    <div class="cig-counter">
+      <button onclick="changeCigs(-1)">−</button>
+      <span id="cig-count">0</span>
+      <button onclick="changeCigs(1)">+</button>
+    </div>
+    <div id="cig-log-area">
+      <button class="btn-log" onclick="logToday()" id="btn-log">Registrar día</button>
+    </div>
+  </div>
+  <div id="battle-section"></div>
+  <div class="team-section">
+    <h3>Equipo esta semana</h3>
+    <div class="team-strip" id="team-strip"></div>
+  </div>
+</div>
+
+<!-- BATTLE -->
+<div id="screen-battle" class="screen">
+  <div class="battle-header">
+    <h2>⚔️ <span id="battle-title">COMBATE</span></h2>
+    <div class="badge" id="battle-type-badge">Miniboss</div>
+  </div>
+  <div class="hp-bars">
+    <div class="hp-bar-row">
+      <div class="hp-bar-label">
+        <span>👥 Equipo</span>
+        <span id="team-hp-label">0 / 0</span>
+      </div>
+      <div class="hp-bar-track">
+        <div class="hp-bar-fill team" id="team-hp-bar" style="width:100%"></div>
+      </div>
+    </div>
+    <div class="hp-bar-row">
+      <div class="hp-bar-label">
+        <span id="enemy-hp-name">Enemigo</span>
+        <span id="enemy-hp-label">0 / 0</span>
+      </div>
+      <div class="hp-bar-track">
+        <div class="hp-bar-fill enemy" id="enemy-hp-bar" style="width:100%"></div>
+      </div>
+    </div>
+  </div>
+  <div class="battle-log" id="battle-log"></div>
+  <button class="btn-back" id="btn-battle-back" onclick="afterBattle()" style="display:none">
+    ← Ver resultado
+  </button>
+</div>
+
+<!-- HISTORY -->
+<div id="screen-history" class="screen">
+  <div class="page-header" style="margin-bottom:16px">
+    <h2>📜 Historial</h2>
+  </div>
+  <div class="history-section" id="history-content"></div>
+</div>
+
+<!-- NAV -->
+<nav id="bottom-nav">
+  <button class="active" onclick="switchTab('home')" id="nav-home">
+    <span>🏠</span><span>Inicio</span>
+  </button>
+  <button onclick="switchTab('history')" id="nav-history">
+    <span>📜</span><span>Historia</span>
+  </button>
+</nav>
+
+<script src="characters.js"></script>
+<script>
+// ═══════════════════════════════════════════════════
+//  CONSTANTS & DATA
+// ═══════════════════════════════════════════════════
+const STORAGE_KEY = 'quitapp_data';
+const DAY_NAMES = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+const BATTLE_DAYS = [3, 5, 7];
+const BATTLE_TYPE = { 3: 'miniboss', 5: 'midboss', 7: 'boss' };
+const BATTLE_LABEL = { miniboss: 'Miniboss', midboss: 'Midboss', boss: 'JEFE FINAL' };
+
+const SAGAS = [
+  null, // index 0 unused
+  ['Raditz', 'Nappa', 'Vegeta'],
+  ['Freeza 1ª Forma', 'Freeza 3ª Forma', 'Freeza Final'],
+  ['Cell Jr.', 'Cell Semi-Perfecto', 'Cell Perfecto'],
+  ['Spopovich', 'Pui Pui', 'Majin Buu'],
+  ['Zamasu', 'Zamasu Fusionado', 'Jiren'],
+];
+const SAGA_NAMES = [null, 'Saga Saiyan', 'Saga Frieza', 'Saga Cell', 'Saga Buu', 'Saga DBS'];
+const ENEMY_EMOJI = {
+  'Raditz':'🖤','Nappa':'💪','Vegeta':'👑',
+  'Freeza 1ª Forma':'👾','Freeza 3ª Forma':'😤','Freeza Final':'👾',
+  'Cell Jr.':'🧬','Cell Semi-Perfecto':'🧬','Cell Perfecto':'🟢',
+  'Spopovich':'💢','Pui Pui':'🔮','Majin Buu':'🩷',
+  'Zamasu':'⚡','Zamasu Fusionado':'⚡','Jiren':'💜',
+};
+
+const ROLE_HP   = { captain:1200, subcaptain:1000, strategist:700, attacker:600, defender:1000, support:500, special:600 };
+const ROLE_MULT = { captain:1.2,  subcaptain:1.0,  strategist:1.0, attacker:2.0, defender:0.7,  support:1.0, special:1.0 };
+const ROLE_LABELS = {
+  captain:'Capitán', subcaptain:'Subcapitán', strategist:'Estratega',
+  attacker:'Atacante', defender:'Defensor', support:'Apoyo', special:'Especial'
+};
+
+// ═══════════════════════════════════════════════════
+//  LOCAL STORAGE
+// ═══════════════════════════════════════════════════
+function loadData() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || null; }
+  catch { return null; }
+}
+function saveData(d) { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }
+
+// ═══════════════════════════════════════════════════
+//  SEEDED RNG
+// ═══════════════════════════════════════════════════
+function makeRNG(seed) {
+  let s = (seed * 1664525 + 1013904223) >>> 0;
+  return () => {
+    s = (s * 1664525 + 1013904223) >>> 0;
+    return s / 0x100000000;
+  };
+}
+
+// ═══════════════════════════════════════════════════
+//  GAME LOGIC
+// ═══════════════════════════════════════════════════
+function getPool(week) {
+  return week % 2 === 1 ? heroesPool : villainsPool;
+}
+
+function getWeekChars(week) {
+  const pool = getPool(week);
+  const rng = makeRNG(week * 7919);
+  const arr = [...pool];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr.slice(0, 7);
+}
+
+function getThresholds(week) {
+  const w = Math.min(week, 5);
+  return 6 - w; // week1=5, week2=4, week3=3, week4=2, week5+=1
+}
+
+function getFormIndex(char, cigs, week) {
+  const n = char.forms.length;
+  if (cigs === 0) return n - 1;
+  const midMax = getThresholds(week);
+  if (cigs <= midMax) return Math.floor((n - 1) / 2);
+  return 0;
+}
+
+function gameDay(data) {
+  const start = new Date(data.startDate);
+  start.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return Math.max(1, Math.floor((today - start) / 86400000) + 1);
+}
+
+function getWeekDay(totalDay) {
+  return {
+    week: Math.ceil(totalDay / 7),
+    dayInWeek: ((totalDay - 1) % 7) + 1,
+  };
+}
+
+function getSagaIdx(week) { return ((week - 1) % 5) + 1; }
+
+function getEnemyName(week, battleType) {
+  const sagaIdx = getSagaIdx(week);
+  const typeIdx = battleType === 'miniboss' ? 0 : battleType === 'midboss' ? 1 : 2;
+  return SAGAS[sagaIdx][typeIdx];
+}
+
+function getEnemyStats(week, battleType) {
+  const BASE = {
+    miniboss: { hp: 8000,  power: 3000  },
+    midboss:  { hp: 20000, power: 7000  },
+    boss:     { hp: 50000, power: 15000 },
+  };
+  const cycle = Math.floor((week - 1) / 5);
+  const weekInCycle = (week - 1) % 5;
+  const scale = (1 + weekInCycle * 0.2) * Math.pow(1.5, cycle);
+  const b = BASE[battleType];
+  return { hp: Math.floor(b.hp * scale), power: Math.floor(b.power * scale) };
+}
+
+function getTeamMaxHP(chars) {
+  return chars.reduce((s, c) => s + ROLE_HP[c.role], 0);
+}
+
+// ═══════════════════════════════════════════════════
+//  BATTLE ENGINE
+// ═══════════════════════════════════════════════════
+function runBattle(week, dayInWeek, data) {
+  const battleType = BATTLE_TYPE[dayInWeek];
+  const weekStart = (Math.ceil((gameDay(data) - (dayInWeek - 1)) / 7) - 1) * 7 + 1;
+  // Get team: all chars for days 1..dayInWeek this week
+  const weekChars = getWeekChars(week);
+  const team = [];
+  for (let d = 1; d <= dayInWeek; d++) {
+    const totalDay = (week - 1) * 7 + d;
+    const dayKey = String(totalDay);
+    const cigs = data.cigs[dayKey] !== undefined ? data.cigs[dayKey] : null;
+    const formIdx = cigs !== null ? getFormIndex(weekChars[d - 1], cigs, week) : 0;
+    team.push({ char: weekChars[d - 1], form: weekChars[d - 1].forms[formIdx], formIdx });
+  }
+
+  const enemyName = getEnemyName(week, battleType);
+  const enemyStats = getEnemyStats(week, battleType);
+  const teamMaxHP = getTeamMaxHP(team.map(t => t.char));
+
+  let teamHP = teamMaxHP;
+  let enemyHP = enemyStats.hp;
+  let enemyPower = enemyStats.power;
+
+  const log = [];
+  const result = { log, victory: false, teamMaxHP, enemyMaxHP: enemyStats.hp };
+
+  // Role bonuses setup
+  const hasCaptain    = team.some(t => t.char.role === 'captain');
+  const hasStrategist = team.some(t => t.char.role === 'strategist');
+  const hasDefender   = team.some(t => t.char.role === 'defender');
+  const hasSubCap     = team.some(t => t.char.role === 'subcaptain');
+
+  const captainBonus = hasCaptain ? 1.2 : 1.0;
+  if (hasStrategist) enemyPower = Math.floor(enemyPower * 0.85);
+
+  // Special role multipliers (randomised once)
+  const specialMults = [0.3, 0.5, 1.0, 1.5, 2.0, 3.0];
+  const specMap = {};
+  team.forEach(t => {
+    if (t.char.role === 'special') {
+      const m = specialMults[Math.floor(Math.random() * specialMults.length)];
+      specMap[t.char.id] = m;
+    }
+  });
+
+  const push = (text, cls='') => log.push({ text, cls });
+
+  push(`${ENEMY_EMOJI[enemyName] || '👿'} ¡${enemyName} aparece con ${enemyStats.hp.toLocaleString()} HP!`);
+  if (hasStrategist) push(`🧠 Estratega reduce el poder de ${enemyName} un 15%`, 'heal');
+  push('', 'separator');
+
+  let supportHealed = false;
+
+  for (let round = 1; round <= 12 && teamHP > 0 && enemyHP > 0; round++) {
+    push(`— Turno ${round} —`, 'separator');
+
+    // Support heal first turn
+    const supporters = team.filter(t => t.char.role === 'support');
+    if (supporters.length && !supportHealed) {
+      const healAmt = Math.floor(teamMaxHP * 0.12);
+      teamHP = Math.min(teamMaxHP, teamHP + healAmt);
+      supporters.forEach(s => push(`💚 [${s.char.name}] cura al equipo: +${healAmt.toLocaleString()} HP`, 'heal'));
+      supportHealed = true;
+    }
+
+    let nextBonus = 1.0;
+    for (const member of team) {
+      if (enemyHP <= 0) break;
+      const { char, form } = member;
+      let mult = ROLE_MULT[char.role] * captainBonus * nextBonus;
+      nextBonus = 1.0;
+
+      if (char.role === 'special') {
+        const sm = specMap[char.id];
+        mult = sm * captainBonus;
+        if (sm >= 2.0) push(`✨ ¡${char.name} desata una energía misteriosa! ×${sm}`, 'heal');
+        else if (sm <= 0.5) push(`😅 ${char.name} falló miserablemente...`, 'enemy-atk');
+      }
+
+      if (char.role === 'support' && round > 1) {
+        nextBonus = 1.3;
+        push(`💫 [${char.name}] potencia al siguiente guerrero ×1.3`, 'heal');
+      }
+
+      const rng = 0.85 + Math.random() * 0.30;
+      const dmg = Math.max(1, Math.floor(form.power * mult * rng));
+      enemyHP -= dmg;
+      push(`⚡ [${char.name} · ${form.name}] usa ${form.attack} → ${dmg.toLocaleString()} dmg`);
+    }
+
+    result.finalTeamHP = teamHP;
+    result.finalEnemyHP = Math.max(0, enemyHP);
+
+    if (enemyHP <= 0) break;
+
+    // Enemy counterattack
+    const rng2 = 0.85 + Math.random() * 0.30;
+    let eDmg = Math.floor(enemyPower * rng2);
+    if (hasDefender) {
+      eDmg = Math.floor(eDmg * 0.5);
+      push(`🛡️ Defensor bloquea parte del ataque`, 'heal');
+    }
+    let absorbed = 0;
+    if (hasSubCap) {
+      absorbed = Math.floor(eDmg * 0.3);
+      eDmg -= absorbed;
+      push(`🔰 Subcapitán absorbe ${absorbed.toLocaleString()} dmg`, 'heal');
+    }
+    teamHP -= eDmg;
+    push(`💥 [${enemyName}] contraataca: ${eDmg.toLocaleString()} dmg al equipo`, 'enemy-atk');
+  }
+
+  result.finalTeamHP = Math.max(0, teamHP);
+  result.finalEnemyHP = Math.max(0, enemyHP);
+
+  if (enemyHP <= 0) {
+    result.victory = true;
+    push('', 'separator');
+    push(`🌟 ¡VICTORIA! ¡${enemyName} ha sido derrotado!`, 'victory');
+    push(`El equipo termina con ${result.finalTeamHP.toLocaleString()} HP`, 'heal');
+  } else {
+    push('', 'separator');
+    push(`💀 DERROTA... ${enemyName} era demasiado poderoso.`, 'defeat');
+    push(`Necesitas fumar menos para mejorar las formas de tus guerreros.`, 'enemy-atk');
+  }
+
+  return result;
+}
+
+// ═══════════════════════════════════════════════════
+//  UI HELPERS
+// ═══════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('#bottom-nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('nav-' + tab).classList.add('active');
+  if (tab === 'home') { showScreen('home'); renderHome(); }
+  if (tab === 'history') { showScreen('history'); renderHistory(); }
+}
+
+let currentCigs = 0;
+function changeCigs(delta) {
+  currentCigs = Math.max(0, currentCigs + delta);
+  document.getElementById('cig-count').textContent = currentCigs;
+}
+
+// ═══════════════════════════════════════════════════
+//  SETUP
+// ═══════════════════════════════════════════════════
+function setupApp() {
+  const dateVal  = document.getElementById('setup-date').value;
+  const cigsVal  = parseInt(document.getElementById('setup-cigs').value) || 10;
+  const priceVal = parseFloat(document.getElementById('setup-price').value) || 6;
+  if (!dateVal) { alert('Selecciona una fecha de inicio'); return; }
+  const data = { startDate: dateVal, cigsPerDay: cigsVal, pricePerPack: priceVal, cigs: {}, battles: {} };
+  saveData(data);
+  document.getElementById('bottom-nav').style.display = 'flex';
+  switchTab('home');
+}
+
+// ═══════════════════════════════════════════════════
+//  RENDER HOME
+// ═══════════════════════════════════════════════════
+function renderHome() {
+  const data = loadData();
+  if (!data) return;
+
+  const totalDay = gameDay(data);
+  const { week, dayInWeek } = getWeekDay(totalDay);
+  const weekChars = getWeekChars(week);
+  const todayChar = weekChars[dayInWeek - 1];
+  const todayKey  = String(totalDay);
+  const todayCigs = data.cigs[todayKey];
+  const todayLogged = todayCigs !== undefined;
+  const todayFormIdx = todayLogged ? getFormIndex(todayChar, todayCigs, week) : (week > 1 ? 0 : weekChars[dayInWeek-1].forms.length - 1);
+  const todayForm = todayChar.forms[todayFormIdx];
+  const midMax = getThresholds(week);
+  const sagaIdx = getSagaIdx(week);
+
+  // Header
+  document.getElementById('home-week-label').textContent = `Semana ${week}`;
+  document.getElementById('home-day-label').textContent  = `Día ${dayInWeek}/7`;
+  document.getElementById('home-saga-label').textContent = SAGA_NAMES[sagaIdx] || `Saga Semana ${week}`;
+
+  // Stats bar
+  const daysLogged = Object.keys(data.cigs).length;
+  const cigsPerPack = 20;
+  const packsNotSmoked = (data.cigsPerDay * totalDay) / cigsPerPack;
+  const saved = ((packsNotSmoked * data.pricePerPack) - Object.values(data.cigs).reduce((s,v)=>s+v,0) / cigsPerPack * data.pricePerPack).toFixed(0);
+  let streak = 0;
+  for (let d = totalDay; d >= 1; d--) {
+    if (data.cigs[String(d)] === 0) streak++;
+    else break;
+  }
+  document.getElementById('stat-days').textContent = totalDay;
+  document.getElementById('stat-saved').textContent = `€${Math.max(0, saved)}`;
+  document.getElementById('stat-streak').textContent = streak;
+
+  // Today card
+  document.getElementById('today-card-container').innerHTML = `
+    <div class="char-card today">
+      <div class="char-emoji">${todayChar.emoji}</div>
+      <div class="char-info">
+        <div class="char-name">${todayChar.name}</div>
+        <div class="char-form">${todayForm.name}</div>
+        <div class="char-power">${todayForm.power.toLocaleString()} <span>poder</span></div>
+        <div class="char-attack">⚡ ${todayForm.attack}</div>
+        <div class="char-role-badge">${ROLE_LABELS[todayChar.role]}</div>
+      </div>
+    </div>`;
+
+  // Thresholds
+  document.getElementById('thresholds-container').innerHTML = `
+    <div class="thresholds-box">
+      <h4>Thresholds semana ${week} — tu reto de hoy</h4>
+      <div class="threshold-row"><span class="th-icon th-good">★</span><span class="th-good">0 cigarrillos → ${todayChar.forms[todayChar.forms.length-1].name} (máxima)</span></div>
+      ${todayChar.forms.length > 2 ? `<div class="threshold-row"><span class="th-icon th-mid">◆</span><span class="th-mid">1–${midMax} cigarrillos → ${todayChar.forms[Math.floor((todayChar.forms.length-1)/2)].name} (media)</span></div>` : ''}
+      <div class="threshold-row"><span class="th-icon th-bad">▼</span><span class="th-bad">${midMax+1}+ cigarrillos → ${todayChar.forms[0].name} (base)</span></div>
+    </div>`;
+
+  // Cig input
+  const logArea = document.getElementById('cig-log-area');
+  if (todayLogged) {
+    currentCigs = todayCigs;
+    document.getElementById('cig-count').textContent = todayCigs;
+    logArea.innerHTML = `<div class="logged-badge">✅ Registrado: ${todayCigs} cigarrillos hoy</div>`;
+  } else {
+    logArea.innerHTML = `<button class="btn-log" onclick="logToday()">Registrar día</button>`;
+  }
+
+  // Battle section
+  const battleSec = document.getElementById('battle-section');
+  if (BATTLE_DAYS.includes(dayInWeek)) {
+    const battleKey = `w${week}d${dayInWeek}`;
+    const battleDone = data.battles[battleKey] !== undefined;
+    if (!todayLogged) {
+      battleSec.innerHTML = `<div class="battle-btn-section"><div class="battle-result-badge" style="background:rgba(245,166,35,0.1);color:var(--accent)">⚔️ Registra tu día para desbloquear el combate — ${BATTLE_LABEL[BATTLE_TYPE[dayInWeek]]}</div></div>`;
+    } else if (battleDone) {
+      const res = data.battles[battleKey];
+      battleSec.innerHTML = `<div class="battle-btn-section"><div class="battle-result-badge ${res.victory?'win':'lose'}">${res.victory?'🏆 Victoria':'💀 Derrota'} — ${BATTLE_LABEL[BATTLE_TYPE[dayInWeek]]} completado</div></div>`;
+    } else {
+      battleSec.innerHTML = `<div class="battle-btn-section"><button class="btn-battle" onclick="startBattle(${week},${dayInWeek})">⚔️ ¡COMBATE! — ${BATTLE_LABEL[BATTLE_TYPE[dayInWeek]]}</button></div>`;
+    }
+  } else {
+    battleSec.innerHTML = '';
+  }
+
+  // Team strip
+  const strip = document.getElementById('team-strip');
+  strip.innerHTML = '';
+  for (let d = 1; d <= 7; d++) {
+    const tDay = (week - 1) * 7 + d;
+    const tKey = String(tDay);
+    const tChar = weekChars[d - 1];
+    const tCigs = data.cigs[tKey];
+    const isFuture = tDay > totalDay;
+    const isBattle = BATTLE_DAYS.includes(d);
+    const isToday  = d === dayInWeek;
+    let cls = 'team-slot';
+    if (!isFuture) cls += ' filled';
+    if (isToday) cls += ' today-slot';
+    if (isBattle && !isFuture) cls += ' battle-slot';
+    const fIdx = tCigs !== undefined ? getFormIndex(tChar, tCigs, week) : null;
+    const fName = fIdx !== null ? tChar.forms[fIdx].name : '';
+    strip.innerHTML += `
+      <div class="${cls}">
+        <span class="slot-emoji">${isFuture ? '❓' : tChar.emoji}</span>
+        <div class="slot-day">${DAY_NAMES[d-1]}</div>
+        ${!isFuture ? `<div class="slot-name">${tChar.name.split(' ')[0]}</div>` : ''}
+        ${fName ? `<div style="font-size:9px;color:var(--accent)">${fName.split(' ').slice(0,2).join(' ')}</div>` : ''}
+        ${isBattle && !isFuture ? `<div class="slot-battle">${BATTLE_LABEL[BATTLE_TYPE[d]].split(' ')[0]}</div>` : ''}
+      </div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  LOG TODAY
+// ═══════════════════════════════════════════════════
+function logToday() {
+  const data = loadData();
+  if (!data) return;
+  const totalDay = gameDay(data);
+  data.cigs[String(totalDay)] = currentCigs;
+  saveData(data);
+  renderHome();
+}
+
+// ═══════════════════════════════════════════════════
+//  BATTLE
+// ═══════════════════════════════════════════════════
+let battleResult = null;
+
+function startBattle(week, dayInWeek) {
+  showScreen('battle');
+  document.getElementById('nav-home').classList.remove('active');
+
+  const data = loadData();
+  const battleType = BATTLE_TYPE[dayInWeek];
+  const enemyName  = getEnemyName(week, battleType);
+  const enemyStats = getEnemyStats(week, battleType);
+  const weekChars  = getWeekChars(week);
+  const teamChars  = weekChars.slice(0, dayInWeek).map(c => ({ char: c }));
+  const teamMaxHP  = getTeamMaxHP(teamChars.map(t => t.char));
+
+  document.getElementById('battle-title').textContent   = `vs ${enemyName}`;
+  document.getElementById('battle-type-badge').textContent = BATTLE_LABEL[battleType];
+  document.getElementById('enemy-hp-name').textContent  = `${ENEMY_EMOJI[enemyName]||'👿'} ${enemyName}`;
+  document.getElementById('btn-battle-back').style.display = 'none';
+
+  const result = runBattle(week, dayInWeek, data);
+  battleResult = { week, dayInWeek, result };
+
+  // Save result
+  data.battles[`w${week}d${dayInWeek}`] = { victory: result.victory };
+  saveData(data);
+
+  // Animate log
+  const logEl = document.getElementById('battle-log');
+  logEl.innerHTML = '';
+  let i = 0;
+  const teamHPLabel  = document.getElementById('team-hp-label');
+  const enemyHPLabel = document.getElementById('enemy-hp-label');
+  const teamBar  = document.getElementById('team-hp-bar');
+  const enemyBar = document.getElementById('enemy-hp-bar');
+
+  teamHPLabel.textContent  = `${teamMaxHP.toLocaleString()} / ${teamMaxHP.toLocaleString()}`;
+  enemyHPLabel.textContent = `${enemyStats.hp.toLocaleString()} / ${enemyStats.hp.toLocaleString()}`;
+
+  function nextLine() {
+    if (i >= result.log.length) {
+      document.getElementById('btn-battle-back').style.display = 'block';
+      // Final HP bar update
+      const tPct = Math.max(0, result.finalTeamHP / teamMaxHP * 100);
+      const ePct = Math.max(0, result.finalEnemyHP / enemyStats.hp * 100);
+      teamBar.style.width  = tPct + '%';
+      enemyBar.style.width = ePct + '%';
+      teamHPLabel.textContent  = `${result.finalTeamHP.toLocaleString()} / ${teamMaxHP.toLocaleString()}`;
+      enemyHPLabel.textContent = `${result.finalEnemyHP.toLocaleString()} / ${enemyStats.hp.toLocaleString()}`;
+      teamBar.style.background  = tPct > 50 ? 'var(--green)' : tPct > 25 ? 'var(--accent)' : 'var(--red)';
+      return;
+    }
+    const entry = result.log[i++];
+    if (entry.text === '') { const hr = document.createElement('div'); hr.className = 'log-line separator'; logEl.appendChild(hr); }
+    else { const span = document.createElement('span'); span.className = 'log-line ' + (entry.cls||''); span.textContent = entry.text; logEl.appendChild(span); }
+    logEl.scrollTop = logEl.scrollHeight;
+    setTimeout(nextLine, 800);
+  }
+  nextLine();
+}
+
+function afterBattle() {
+  switchTab('home');
+}
+
+// ═══════════════════════════════════════════════════
+//  RENDER HISTORY
+// ═══════════════════════════════════════════════════
+function renderHistory() {
+  const data = loadData();
+  if (!data) return;
+  const totalDay = gameDay(data);
+  const { week: currentWeek } = getWeekDay(totalDay);
+  const content = document.getElementById('history-content');
+  if (currentWeek === 1 && Object.keys(data.cigs).length === 0) {
+    content.innerHTML = '<div class="empty-state">📭 Aún no hay historial.<br/>Completa tu primera semana.</div>';
+    return;
+  }
+  let html = '';
+  for (let w = currentWeek; w >= 1; w--) {
+    const weekChars = getWeekChars(w);
+    const sagaIdx = getSagaIdx(w);
+    let totalCigsW = 0, loggedDays = 0;
+    let daysHtml = '';
+    for (let d = 1; d <= 7; d++) {
+      const tDay = (w - 1) * 7 + d;
+      const tKey = String(tDay);
+      const tChar = weekChars[d - 1];
+      const tCigs = data.cigs[tKey];
+      const isFuture = tDay > totalDay;
+      const battleKey = `w${w}d${d}`;
+      const battleRes = data.battles[battleKey];
+      if (!isFuture && tCigs !== undefined) { totalCigsW += tCigs; loggedDays++; }
+      const fIdx = !isFuture && tCigs !== undefined ? getFormIndex(tChar, tCigs, w) : null;
+      const fForm = fIdx !== null ? tChar.forms[fIdx] : null;
+      let battleCls = '';
+      if (battleRes) battleCls = battleRes.victory ? 'ms-battle-w' : 'ms-battle-l';
+      daysHtml += `
+        <div class="mini-slot ${battleCls}">
+          <span class="ms-emoji">${isFuture ? '❓' : tChar.emoji}</span>
+          <div>${DAY_NAMES[d-1]}</div>
+          ${!isFuture && tCigs !== undefined ? `<div class="ms-cig" style="color:${tCigs===0?'var(--green)':tCigs<=getThresholds(w)?'var(--accent)':'var(--red)'}">${tCigs}🚬</div>` : ''}
+          ${fForm ? `<div style="font-size:9px;color:var(--muted)">${fForm.name.split(' ').slice(0,2).join(' ')}</div>` : ''}
+        </div>`;
+    }
+    const battles = [3,5,7].map(d => {
+      const k = `w${w}d${d}`;
+      const r = data.battles[k];
+      if (!r) return null;
+      return r.victory ? `✅ ${BATTLE_LABEL[BATTLE_TYPE[d]]}` : `❌ ${BATTLE_LABEL[BATTLE_TYPE[d]]}`;
+    }).filter(Boolean);
+    html += `
+      <div class="week-card">
+        <div class="week-card-header">
+          <h3>Semana ${w} — ${SAGA_NAMES[sagaIdx]||`Saga ${w}`}</h3>
+          <span class="badge">${getPool(w) === heroesPool ? '🦸 Héroes' : '👿 Villanos'}</span>
+        </div>
+        <div class="week-stats">
+          <div class="stat-pill">🚬 <strong>${totalCigsW}</strong> cig total</div>
+          <div class="stat-pill">📅 <strong>${loggedDays}/7</strong> días</div>
+          ${battles.map(b=>`<div class="stat-pill">${b}</div>`).join('')}
+        </div>
+        <div class="week-days-strip">${daysHtml}</div>
+      </div>`;
+  }
+  content.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════
+(function init() {
+  const data = loadData();
+  if (data) {
+    document.getElementById('bottom-nav').style.display = 'flex';
+    // Set default date on setup (hidden)
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('setup-date').value = today;
+    switchTab('home');
+  } else {
+    document.getElementById('bottom-nav').style.display = 'none';
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('setup-date').value = today;
+    showScreen('setup');
+  }
+})();
+</script>
+</body>
+</html>
